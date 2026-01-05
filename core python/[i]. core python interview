@@ -1,0 +1,91 @@
+### 30 Most Asked Python Interview Questions (Based on 2026 Sources)
+
+1. **What is the difference between a list and a tuple?**  
+   Lists are mutable (changeable) and use `[]`, e.g., `my_list = [1, 2, 3]; my_list[0] = 4`. Tuples are immutable (fixed) and use `()`, e.g., `my_tuple = (1, 2, 3)`. Tuples are faster and hashable for dict keys.
+
+2. **What are mutable and immutable data types in Python?**  
+   Mutable types (e.g., lists, dicts) can be modified in place. Immutable types (e.g., strings, tuples, ints) cannot; changes create new objects. This impacts memory and hashing.
+
+3. **Explain the difference between `==` and `is`.**  
+   `==` checks value equality (e.g., `1 == 1.0` is True). `is` checks object identity (same memory address, e.g., `a is b` for shared objects).
+
+4. **What are list comprehensions? Give an example.**  
+   Concise way to build lists: `[expr for item in iterable if condition]`. Example: `[x**2 for x in range(5)]` yields `[0, 1, 4, 9, 16]`. Improves readability over loops.
+
+5. **What is the purpose of the `self` parameter in class methods?**  
+   `self` refers to the instance, allowing access to attributes/methods. Example: `def __init__(self, name): self.name = name`. It's implicitly passed on method calls.
+
+6. **What are lambda functions? When are they useful?**  
+   Anonymous one-expression functions: `lambda x: x * 2`. Useful for short callbacks in `map()`, `filter()`, or `sorted(key=...)`.
+
+7. **How does exception handling work with `try/except/else/finally`?**  
+   `try` runs risky code; `except` catches errors; `else` runs if no error; `finally` always runs (e.g., cleanup). Example: `try: ... except ValueError: ... finally: close_file()`.
+
+8. **What are decorators in Python?**  
+   Functions that wrap/modify others without altering code, using `@decorator`. Example: `@timer def func(): ...` adds timing. For logging or validation.
+
+9. **What are generators in Python?**  
+   Functions using `yield` for lazy value production, saving memory. Example: `def gen(): yield 1; yield 2`. Iterated via loops or `next()`.
+
+10. **What is the difference between `append()` and `extend()` for lists?**  
+    `append()` adds one item (e.g., `lst.append([1])` adds sublist). `extend()` adds iterable elements (e.g., `lst.extend([1])` adds 1).
+
+11. **What is the `with` statement used for?**  
+    Manages resources automatically via `__enter__`/`__exit__` (context managers). Example: `with open('file.txt') as f: ...` ensures file closes.
+
+12. **Explain shallow copy vs. deep copy.**  
+    Shallow (`copy.copy()`) copies top-level but shares nested refs. Deep (`copy.deepcopy()`) fully clones nests. Shallow risks mutating originals.
+
+13. **What is the Global Interpreter Lock (GIL)?**  
+    Mutex in CPython limiting multithreaded bytecode execution, hindering CPU parallelism. Use multiprocessing for true parallelism.
+
+14. **What are `*args` and `**kwargs`?**  
+    `*args` packs positional args into a tuple; `**kwargs` packs keywords into a dict. For flexible function params: `def func(*args, **kwargs): ...`.
+
+15. **How do you reverse a string in Python?**  
+    Use slicing: `s[::-1]`. Or `s reversed and joined: ''.join(reversed(s))`.
+
+16. **What is PEP 8?**  
+    Python style guide: 4-space indents, 79-char lines, snake_case vars. Enhances readability.
+
+17. **What is `__init__` in Python classes?**  
+    Constructor initializing instances: `def __init__(self, args): self.attr = args`. Called on `Class(args)`.
+
+18. **What are sets in Python?**  
+    Unordered, unique, mutable collections: `s = {1, 2}`. Fast membership; supports union/intersection.
+
+19. **How do you handle missing keys in a dictionary?**  
+    `dict.get(key, default)`, `defaultdict`, or `if key in dict`/`try/except KeyError`.
+
+20. **What is the difference between `del` and `remove()` for lists?**  
+    `del lst[index]` deletes by index/slice; `lst.remove(value)` deletes first occurrence by value.
+
+21. **Explain `pass`, `continue`, and `break`.**  
+    `pass`: No-op placeholder. `continue`: Skips loop iteration. `break`: Exits loop.
+
+22. **What is pickling and unpickling?**  
+    Pickling serializes objects to bytes (`pickle.dump`); unpickling deserializes (`pickle.load`). For storage/transmission.
+
+23. **How do you merge two dictionaries?**  
+    `{**d1, **d2}` or `d1 | d2` (3.9+). For updates: `d1.update(d2)`.
+
+24. **What is the `enumerate()` function?**  
+    Adds indices to iterables: `for i, val in enumerate(lst): ...`. Example: `list(enumerate(['a', 'b']))` → `[(0, 'a'), (1, 'b')]`.
+
+25. **What are closures in Python?**  
+    Inner functions retaining outer scope vars after return. Example: `def outer(x): def inner(): return x; return inner`.
+
+26. **How do you sort a list?**  
+    `lst.sort()` (in-place) or `sorted(lst)` (new list). With key: `sorted(lst, key=lambda x: x[1])`.
+
+27. **What is the `zip()` function?**  
+    Pairs iterables into tuples: `list(zip([1,2], ['a','b']))` → `[(1,'a'), (2,'b')]`.
+
+28. **What is inheritance in OOP?**  
+    Child classes inherit parent attrs/methods: `class Child(Parent): ...`. Promotes reuse; supports polymorphism.
+
+29. **How do you check if a number is prime?**  
+    Loop from 2 to sqrt(n); if no divisors, prime. Example: `import math; if all(n % i != 0 for i in range(2, int(math.sqrt(n))+1))`.
+
+30. **What is the difference between `split()` and `join()`?**  
+    `split(delimiter)` breaks string to list; `join(delimiter)` combines list to string. Example: `'a b'.split()` → `['a', 'b']`; `' '.join(['a','b'])` → `'a b'`.
