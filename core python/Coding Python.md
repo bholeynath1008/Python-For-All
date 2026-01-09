@@ -158,6 +158,383 @@ for k, v in my_dict.items():
 - Common Pitfall: Mutable elements in sets/dicts (e.g., lists) can't be keys since unhashable.  
 Practice: Use `help(list)` in Python REPL for more!
 
+### Beginner Level (Questions 1-7)
+
+#### 1. List - Sum of Elements
+**Question:** Write a Python function that takes a list of integers as input and returns the sum of all elements.  
+**Example:** `sum_list([1, 2, 3, 4])` should return `10`.
+
+**Notes:**  
+This is a straightforward use of the built-in `sum()` function, which is efficient for summing iterables.
+
+**Solution:**
+```python
+def sum_list(arr):
+    return sum(arr)
+
+# Test
+print(sum_list([1, 2, 3, 4, 5]))  # Output: 15
+```
+
+**Explanation:** The built-in `sum()` function iterates over the list and adds up all elements efficiently in O(n) time.
+
+#### 2. String - Palindrome Check
+**Question:** Write a function to check if a given string is a palindrome (reads the same forwards and backwards, ignoring case and spaces).  
+**Example:** `"A man a plan a canal Panama"` should return `True`.
+
+**Notes:**  
+Note: The initial code snippet had a bug: `word[::1] == word[::-1]` where `[::1]` is identical to the original string. Proper cleaning (lowercase, remove spaces) is essential for real palindromes.
+
+**Solution:**
+```python
+def palindrome_check(word):
+    # Clean the string: remove spaces and convert to lowercase
+    cleaned = ''.join(word.lower().split())
+    # Compare forward and reversed
+    return cleaned == cleaned[::-1]
+
+# Test
+print(palindrome_check("A man a plan a canal Panama"))  # Output: True
+```
+
+**Explanation:** First, clean the string by removing spaces and converting to lowercase using `lower().split()` and `join()`. Then, compare it to its reverse slice `[::-1]`. This handles case-insensitivity and ignores non-alphabetic characters if extended.
+
+#### 3. Dictionary - Create from Lists
+**Question:** Write a function that takes two lists (one for keys, one for values) and returns a dictionary pairing them.  
+**Example:** `create_dict(['a', 'b'], [1, 2])` should return `{'a': 1, 'b': 2}`.
+
+**Notes:**  
+`zip(keys, values)`: This takes the two lists and "zips" them together like a zipper, creating an iterator of tuples: `('a', 1)` and `('b', 2)`.  
+`dict(...)`: The dictionary constructor takes those tuples and converts the first item into a key and the second into a value.
+
+**Solution:**
+```python
+def create_dict(keys, values):
+    return dict(zip(keys, values))
+
+# Test
+print(create_dict(['a', 'b'], [1, 2]))  # Output: {'a': 1, 'b': 2}
+```
+
+**Explanation:** `zip(keys, values)` pairs elements into tuples like `('a', 1)`, `('b', 2)`. `dict()` converts these tuples into key-value pairs. Assumes lists are of equal length; otherwise, extra elements are ignored.
+
+#### 4. Set - Union Operation
+**Question:** Write a function to find the union of two sets and return it as a sorted list.  
+**Example:** `union_sets({1, 2, 3}, {3, 4, 5})` should return `[1, 2, 3, 4, 5]`.
+
+**Notes:**  
+The `'|'` operator performs the union.  
+`sorted()` takes the resulting set and returns a sorted list.  
+Set Operations Table:  
+| Operation | Symbol | Python Method | Result in Example |  
+|-----------|--------|---------------|-------------------|  
+| Union (All items) | s1 \| s2 | s1.union(s2) | {1, 2, 3, 4, 5, 6} |  
+| Intersection (Only overlaps) | s1 & s2 | s1.intersection(s2) | set() (empty) |  
+| Difference (Items in s1 not in s2) | s1 - s2 | s1.difference(s2) | {1, 2, 3} |
+
+**Solution:**
+```python
+def union_sets(set_a, set_b):
+    # The '|' operator performs the union
+    # sorted() takes the resulting set and returns a sorted list
+    return sorted(set_a | set_b)
+
+# Test
+print(union_sets({1, 2, 3}, {3, 4, 5}))  # Output: [1, 2, 3, 4, 5]
+```
+
+**Explanation:** The `|` operator computes the union (all unique elements from both sets). `sorted()` converts the result to a list in ascending order. Time complexity: O(n log n) due to sorting.
+
+#### 5. List - Reverse In Place
+**Question:** Write a function to reverse a list in place (without creating a new list).  
+**Example:** Input `[1, 2, 3]` should become `[3, 2, 1]`.
+
+**Notes:**  
+While `my_list[::-1]` is great for strings or when you need a new list, it actually creates a copy of the data in memory. To strictly follow the "in place" requirement, `reverse()` or the swapping method are the correct choices.
+
+**Solution:**
+```python
+def reverse_in_place(my_list):
+    my_list.reverse()  # This modifies the original list and returns None
+    return my_list
+
+# Test
+nums = [1, 2, 3]
+reverse_in_place(nums)
+print(nums)  # Output: [3, 2, 1]
+```
+
+**Explanation:** The `reverse()` method modifies the list in place (O(n) time, O(1) space). Avoid slicing `[::-1]` as it creates a new list, violating the "in place" requirement.
+
+#### 6. String - Vowel Count
+**Question:** Write a function to count the number of vowels (a, e, i, o, u) in a string, case-insensitive.  
+**Example:** `"Hello World"` should return `3`.
+
+**Notes:**  
+`if char in vowels:` This is a very fast membership test in Python.  
+Generator expression: The optimized version uses a generator inside `sum()` for conciseness.  
+Dictionary Approach Extension: For per-vowel counts, initialize `{v: 0 for v in vowels}` and increment specific keys; filter out zeros with `{k: v for k, v in counts.items() if v > 0}`.
+
+**Solution:**
+```python
+def count_vowels(text):
+    vowels = "aeiou"
+    count = 0
+    # Convert text to lowercase once to make it case-insensitive
+    for char in text.lower():
+        if char in vowels:
+            count += 1
+    return count
+
+# Test
+print(count_vowels("Hello World"))  # Output: 3
+```
+
+**Alternative Optimized Version:**
+```python
+def count_vowels_short(text):
+    vowels = "aeiou"
+    # This creates a 1 for every vowel found and sums them up
+    return sum(1 for char in text.lower() if char in vowels)
+
+# Test
+print(count_vowels_short("Hello World"))  # Output: 3
+```
+
+**Explanation:** Loop through lowercase characters and check membership in the vowels string (fast O(1) check). The generator version is more Pythonic and concise, still O(n) time.
+
+#### 7. Dictionary - Value Lookup
+**Question:** Write a function that takes a dictionary and a key, returning the value if the key exists, else `"Key not found"`.  
+**Example:** `lookup({1: 'one'}, 1)` should return `'one'`.
+
+**Notes:**  
+`.get()` takes two arguments: the key to find, and the default value to return if it doesn't exist.  
+Why use `.get()` instead of `my_dict[key]`? In Python, dictionaries are essentially Hash Tables. When you try to access a key that isn't there using square brackets, the program crashes with a `KeyError`.  
+Safety: `.get()` prevents your program from crashing if a key is missing.
+
+**Solution:**
+```python
+def lookup(my_dict, key):
+    # .get() takes two arguments: the key to find, 
+    # and the default value to return if it doesn't exist.
+    return my_dict.get(key, "Key not found")
+
+# Test cases
+my_data = {1: 'one', 2: 'two'}
+print(lookup(my_data, 1))    # Output: 'one'
+print(lookup(my_data, 5))    # Output: 'Key not found'
+```
+
+**Manual Version (for understanding):**
+```python
+def lookup_manual(my_dict, key):
+    if key in my_dict:
+        return my_dict[key]
+    else:
+        return 'Key Not Found'
+
+# Test
+print(lookup_manual(my_data, 2))  # Output: 'two'
+```
+
+**Explanation:** `dict.get(key, default)` safely retrieves values without raising `KeyError` on missing keys. The manual `if key in my_dict` is equivalent but more verbose. Both are O(1) time.
+
+### Intermediate Level (Questions 8-13)
+
+#### 8. List - Remove Duplicates
+**Question:** Write a function to remove duplicates from a list while preserving the original order (use a set for efficiency).  
+**Example:** `remove_duplicates([1, 2, 2, 3, 1])` should return `[1, 2, 3]`.
+
+**Notes:**  
+To remove duplicates while preserving the order, we need to keep track of what we have already seen. Using a set is the most efficient way to do this because looking up an item in a set (an "existence check") is incredibly fast.  
+The "Seen" Set Pattern: We loop through the list, and for every item, we check if it's in our seen set. If it isn't, we add it to both our result list and our set.  
+Efficiency Comparison:  
+| Method | Preserves Order? | Speed (Time Complexity) |  
+|--------|------------------|-------------------------|  
+| list(set(items)) | No | O(n) |  
+| Nested Loops | Yes | O(n^2) (Slow) |  
+| "Seen" Set | Yes | O(n) (Fast) |  
+`dict.fromkeys()`: Creates keys in order; duplicates are automatically ignored (Python 3.7+).
+
+**Solution:**
+```python
+def remove_duplicates(items):
+    seen = set()
+    result = []
+    for item in items:
+        if item not in seen:
+            result.append(item)
+            seen.add(item)
+    return result
+
+# Test
+print(remove_duplicates([1, 2, 2, 3, 1]))  # Output: [1, 2, 3]
+```
+
+**Alternative Pythonic Version (Python 3.7+):**
+```python
+def remove_duplicates_fast(items):
+    # dict.fromkeys creates keys in order; duplicates are automatically ignored
+    return list(dict.fromkeys(items))
+
+# Test
+print(remove_duplicates_fast([1, 2, 2, 3, 1]))  # Output: [1, 2, 3]
+```
+
+**Explanation:** Use a "seen" set for O(1) lookups to track uniques while building the result list (preserves order, O(n) time). `dict.fromkeys()` leverages dict insertion order (stable since Python 3.7) for a concise alternative. Avoid `list(set(items))` as it scrambles order.
+
+#### 9. String - Anagram Check
+**Question:** Write a function to check if two strings are anagrams of each other (same characters, same frequencies).  
+**Example:** `"listen"` and `"silent"` should return `True`.
+
+**Notes:**  
+Method Comparison:  
+| Method | Logic | Time Complexity | Best For |  
+|--------|-------|-----------------|----------|  
+| Sorting | sorted(s1) == sorted(s2) | O(n log n) | Coding interviews (simple to explain) |  
+| Counting | Counter(s1) == Counter(s2) | O(n) | High-performance applications |  
+Clean strings: Lowercase and remove spaces for robustness.
+
+**Solution:**
+```python
+from collections import Counter
+
+def is_anagram_fast(str1, str2):
+    # Clean the strings
+    s1 = str1.lower().replace(" ", "")
+    s2 = str2.lower().replace(" ", "")
+    
+    # Counter creates a frequency dictionary: {'l': 1, 'i': 1, ...}
+    return Counter(s1) == Counter(s2)
+
+# Test
+print(is_anagram_fast("Heart", "Earth"))  # Output: True
+```
+
+**Sorting-Based Version:**
+```python
+def is_anagram_sort(str1, str2):
+    s1 = str1.lower().replace(" ", "")
+    s2 = str2.lower().replace(" ", "")
+    return sorted(s1) == sorted(s2)
+
+# Test
+print(is_anagram_sort("listen", "silent"))  # Output: True
+```
+
+**Explanation:** Clean strings (lowercase, remove spaces). `Counter` builds frequency dicts for O(n) comparison. Sorting is O(n log n) but simpler for interviews. Both ignore length mismatches implicitly via equality check.
+
+#### 10. Dictionary - Frequency Counter
+**Question:** Write a function that takes a string and returns a dictionary with character frequencies.  
+**Example:** `char_freq("hello")` should return `{'h': 1, 'e': 1, 'l': 2, 'o': 1}`.
+
+**Notes:**  
+`Counter` from `collections` is ideal for frequency counting as it auto-increments. Manual version uses conditional increment. Make case-insensitive with `lower()`.
+
+**Solution:**
+```python
+from collections import Counter
+
+def char_freq(text):
+    return dict(Counter(text.lower()))
+
+# Test
+print(char_freq("hello"))  # Output: {'h': 1, 'e': 1, 'l': 2, 'o': 1}
+```
+
+**Manual Version:**
+```python
+def char_freq_manual(text):
+    freq = {}
+    for char in text.lower():
+        if char in freq:
+            freq[char] += 1
+        else:
+            freq[char] = 1
+    return freq
+
+# Test
+print(char_freq_manual("hello"))  # Output: {'h': 1, 'e': 1, 'l': 2, 'o': 1}
+```
+
+**Explanation:** `Counter` is a dict subclass that auto-increments counts (O(n) time). Manual version uses `if-else` for same logic. Case-insensitive via `lower()`.
+
+#### 11. Set - Symmetric Difference
+**Question:** Write a function to find the symmetric difference between two sets (elements in exactly one set).  
+**Example:** `sym_diff({1, 2, 3}, {3, 4, 5})` should return `{1, 2, 4, 5}`.
+
+**Notes:**  
+Symmetric difference: Elements unique to each set, i.e., `(a - b) | (b - a)`. Use `^` operator for brevity.
+
+**Solution:**
+```python
+def sym_diff(set_a, set_b):
+    # '^' is the symmetric difference operator
+    return set_a ^ set_b
+
+# Alternative: (a - b) | (b - a)
+def sym_diff_manual(set_a, set_b):
+    return (set_a - set_b) | (set_b - set_a)
+
+# Test
+print(sym_diff({1, 2, 3}, {3, 4, 5}))  # Output: {1, 2, 4, 5}
+```
+
+**Explanation:** `^` computes symmetric difference (union of differences) in O(n) time. Manual version uses `-` for difference and `|` for union, equivalent but more explicit.
+
+#### 12. List - Second Largest
+**Question:** Write a function to find the second largest number in a list of integers (handle duplicates and small lists).  
+**Example:** `second_largest([3, 1, 4, 1, 5])` should return `4`.
+
+**Notes:**  
+Handle edges: Return `None` for lists < 2 elements. Use `set` to dedupe, sort descending. For O(n) optimization, track max/second_max in one pass.
+
+**Solution:**
+```python
+def second_largest(nums):
+    if len(nums) < 2:
+        return None  # Or raise an error
+    unique_sorted = sorted(set(nums), reverse=True)
+    return unique_sorted[1] if len(unique_sorted) >= 2 else None
+
+# Test
+print(second_largest([3, 1, 4, 1, 5]))  # Output: 4
+print(second_largest([1]))  # Output: None
+```
+
+**Explanation:** Convert to set to remove duplicates, sort descending, return index 1. Handles edge cases (len < 2). O(n log n) due to sort; for O(n), use two variables to track max/second_max in one pass.
+
+#### 13. Dictionary - Merge Dicts
+**Question:** Write a function to merge two dictionaries, summing values for duplicate keys.  
+**Example:** `merge_dicts({'a': 1}, {'a': 2, 'b': 3})` should return `{'a': 3, 'b': 3}`.
+
+**Notes:**  
+Use `Counter` for easy summation on overlaps. Manual: Copy first dict, then update/add from second. Assumes numeric values.
+
+**Solution:**
+```python
+from collections import Counter
+
+def merge_dicts(dict1, dict2):
+    combined = Counter(dict1) + Counter(dict2)  # Counters add overlapping values
+    return dict(combined)
+
+# Manual Version
+def merge_dicts_manual(d1, d2):
+    result = d1.copy()
+    for key, value in d2.items():
+        if key in result:
+            result[key] += value
+        else:
+            result[key] = value
+    return result
+
+# Test
+print(merge_dicts({'a': 1}, {'a': 2, 'b': 3}))  # Output: {'a': 3, 'b': 3}
+```
+
+**Explanation:** `Counter` treats dicts as multisets and `+` sums overlaps (O(n) time). Manual version copies first dict and updates/adds from second. Assumes numeric values.
+
 ### Advanced Level (Questions 14-20)
 
 #### 14. String - Longest Substring Without Repeating
@@ -165,10 +542,7 @@ Practice: Use `help(list)` in Python REPL for more!
 **Example:** `"abcabcbb"` should return `3` (for "abc").
 
 **Notes:**  
-Sliding window technique: Use left/right pointers and a set for O(1) duplicate checks. Shrink window on repeats.  
-Edge cases: Empty string (return 0), all unique chars (return len(s)), all repeats (return 1).  
-Space: O(min(n, charset size)), e.g., 26 for lowercase letters.  
-Interview tip: Explain "two pointers" and why set > dict for simple existence.
+Sliding window technique: Use left/right pointers and a set for O(1) duplicate checks. Shrink window on repeats.
 
 **Solution:**
 ```python
@@ -197,13 +571,10 @@ print(length_of_longest_substring("abcabcbb"))  # Output: 3
 **Example:** `two_sum([2, 7, 11, 15], 9)` should return `[0, 1]`.
 
 **Notes:**  
-Hash map for complements: Store num:index, check `target - num` in map. Assumes unique solution.  
-Brute force: Nested loops O(n^2), but hash optimizes to O(n).  
-Edge cases: No solution (return []), duplicates (first occurrence).  
-Interview tip: Discuss trade-offs if indices must be unique or multiple pairs.
+Hash map for complements: Store num:index, check `target - num` in map. Assumes unique solution.
 
 **Solution:**
-```python
+```python:disable-run
 def two_sum(nums, target):
     seen = {}  # key: num, value: index
     for i, num in enumerate(nums):
@@ -216,8 +587,7 @@ def two_sum(nums, target):
 # Test
 print(two_sum([2, 7, 11, 15], 9))  # Output: [0, 1]
 ```
-
-**Explanation:** Dict stores seen numbers and indices. For each num, check if `target - num` was seen (O(1) lookup). Single pass, O(n) time/space. Assumes exactly one solution.
+### Advanced Level (Continued: Questions 16-20)
 
 #### 16. Dictionary - LRU Cache Implementation
 **Question:** Implement an LRU (Least Recently Used) Cache class using a dict and doubly linked list (or OrderedDict for simplicity). Support get and put operations.  
@@ -353,3 +723,35 @@ print(valid_palindrome_ii("abca"))  # Output: True
 #### 20. List/Dict - FizzBuzz with Memoization (Interview Classic Variation)
 **Question:** Write a function to generate the FizzBuzz sequence up to n (use a dict for memoized Fibonacci-like extension if n is large). But focus on: Print numbers 1 to n, replacing multiples of 3 with "Fizz", 5 with "Buzz", both with "FizzBuzz". Extend to count frequencies using a dict.  
 **Example:** For n=15, output includes "FizzBuzz" at 15.
+
+**Notes:**  
+Check order: 15 first, then 3, then 5 to avoid overlap. Dict for counts.  
+Memo extension: If fib-integrated, use `@lru_cache` for recursive fib(n) mod checks.  
+Time: O(n), Space: O(1) for core, O(n) for list. Interview: Extend to multiples of other nums.
+
+**Solution:**
+```python
+def fizzbuzz(n):
+    freq = {'Fizz': 0, 'Buzz': 0, 'FizzBuzz': 0}
+    result = []
+    for i in range(1, n + 1):
+        if i % 15 == 0:
+            result.append("FizzBuzz")
+            freq['FizzBuzz'] += 1
+        elif i % 3 == 0:
+            result.append("Fizz")
+            freq['Fizz'] += 1
+        elif i % 5 == 0:
+            result.append("Buzz")
+            freq['Buzz'] += 1
+        else:
+            result.append(str(i))
+    print('\n'.join(result))
+    return freq
+
+# Test
+print(fizzbuzz(15))
+# Output: Prints sequence up to 15, and freq dict e.g. {'Fizz': 4, 'Buzz': 2, 'FizzBuzz': 1}
+```
+
+**Explanation:** Check divisibility in order (15 first for overlap). Build list for output, track counts in dict. O(n) time. For memoization extension (e.g., if generating Fibonacci FizzBuzz), use `@lru_cache` on a recursive fib function, but core is the loop.
