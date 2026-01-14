@@ -1,5 +1,137 @@
 # Python-For-All
+# LEVEL I
+# Python Backend Developer Roadmap:
 
+## Section 1: Course Contents
+
+### 1.1 Core Python
+**Essential Topics**
+- Data types & structures: lists, tuples, dicts, sets, strings
+- Control flow: if/else, loops, comprehensions (list, dict, set)
+- Functions: args/kwargs, lambda, recursion, scoping (LEGB rule)
+- OOP: classes, inheritance, polymorphism, encapsulation, dunder methods (__init__, __str__, __repr__, __eq__, etc.)
+- Exceptions: try/except/else/finally, raising exceptions, custom exceptions
+- Modules & packages: import system, __name__ == "__main__", relative imports
+- File I/O and context managers (with statement)
+- Iterators, generators, yield keyword
+- Decorators (function and class decorators)
+- Virtual environments (venv) and package management (pip)
+
+**Advanced/Backend-Relevant Topics**
+- Collections module: Counter, defaultdict, namedtuple, deque
+- Multithreading vs multiprocessing, Global Interpreter Lock (GIL)
+- Async/await basics, asyncio introduction (critical for FastAPI)
+- Type hints (typing module) and static type checking
+- Functional tools: map, filter, reduce, functools (partial, lru_cache)
+
+### 1.2 Databases & ORM
+- SQL fundamentals: SELECT, INSERT, UPDATE, DELETE, JOINs, GROUP BY, indexes, transactions, ACID properties
+- PostgreSQL (preferred) or MySQL basics
+- ORM concepts and advantages/disadvantages
+- Django ORM: models, QuerySets, managers, migrations, F/Q expressions, annotations
+- SQLAlchemy (for FastAPI): Core vs ORM, models, sessions, relationships
+- Common issues: N+1 queries, connection pooling, query optimization
+
+### 1.3 Django + Django REST Framework
+**Core Django**
+- Project and app structure, settings.py configuration
+- Models, migrations, admin panel
+- Views: Function-Based Views (FBV) vs Class-Based Views (CBV)
+- URL routing, middleware
+- Forms and basic authentication (optional for API focus)
+
+**Django REST Framework (DRF)**
+- Serializers: ModelSerializer, validation, nested serializers
+- Views: APIView, GenericAPIView, ViewSets, Routers
+- Authentication: Token, Session, JWT (djangorestframework-simplejwt)
+- Permissions, throttling, pagination
+- Filtering (django-filter), search, ordering
+- Testing APIs (APITestCase)
+- Signals, custom managers, renderer/parser classes
+
+### 1.4 FastAPI
+- Project structure and best practices
+- Pydantic models (v2 preferred): data validation, settings management
+- Path parameters, query parameters, request body, headers, cookies
+- Dependencies system (Depends())
+- APIRouter for modular routing
+- Async support: async/await endpoints, asynchronous database drivers
+- Authentication & security: OAuth2, JWT, dependency injection for auth
+- Database integration: SQLAlchemy or async alternatives (Tortoise-ORM, Prisma)
+- Background tasks, WebSockets (basics)
+- Automatic OpenAPI docs (Swagger/Redoc)
+- Error handling, custom responses, response models
+- Testing with TestClient and pytest
+
+### 1.5 Supporting Backend Skills
+- REST API principles: HTTP methods, status codes, versioning
+- Authentication/Authorization: JWT flow, OAuth2 basics
+- Caching (Redis introduction)
+- Task queues: Celery or RQ (basics)
+- Testing: pytest, unit/integration tests, factories
+- Deployment: Docker (Dockerfile, docker-compose), Uvicorn/Gunicorn, Nginx
+- Tools: Git workflow, environment variables, logging, code formatting (black, flake8)
+
+## Section 2: Most Asked Interview Questions
+
+### 2.1 Core Python
+1. Difference between list and tuple? When to use each?
+2. How does Python's GIL affect multithreading/multiprocessing?
+3. Explain *args and **kwargs with practical examples.
+4. What are decorators? Write a simple timing decorator.
+5. Difference between __str__ and __repr__?
+6. How do generators work? Difference from regular functions?
+7. Explain shallow vs deep copy (copy module).
+8. What is a context manager? Implement one using both class and generator approaches.
+9. Explain Python's memory management (reference counting + garbage collection).
+10. What are type hints and why use them?
+
+### 2.2 Databases & ORM
+1. Pros and cons of using an ORM vs raw SQL.
+2. How to optimize slow queries in Django ORM/SQLAlchemy?
+3. Explain database migrations and how they work.
+4. Difference between .get() and .filter() in Django ORM.
+5. How to handle transactions in Django/FastAPI?
+6. What are database indexes? When and where to add them?
+7. Explain the N+1 query problem and solutions (select_related/prefetch_related or eager loading).
+
+### 2.3 Django + Django REST Framework
+1. Explain Django's request-response cycle and MTV architecture.
+2. Difference between authentication and permission classes in DRF.
+3. How do serializers work? What happens in serializer.is_valid()?
+4. APIView vs GenericAPIView vs ViewSet?
+5. How to create custom permissions or validators?
+6. What are Django signals? Give a real-world use case.
+7. How to handle file uploads in DRF?
+8. TokenAuthentication vs JWT – differences and when to use which?
+9. How to override queryset or perform custom logic in a ViewSet?
+10. Explain middleware and its execution order.
+
+### 2.4 FastAPI
+1. Why is FastAPI considered faster than Django/Flask?
+2. Explain Pydantic models and automatic validation.
+3. What are dependencies? Write an auth dependency example.
+4. Difference between sync and async endpoints – when to use async?
+5. How to implement JWT authentication in FastAPI?
+6. How does automatic OpenAPI documentation work?
+7. How to manage database sessions with SQLAlchemy in FastAPI?
+8. What are response models and why use them?
+9. How to add custom middleware?
+10. Explain background tasks with an example.
+
+### 2.5 General Backend & Deployment
+1. Difference between authentication and authorization.
+2. Explain JWT structure and complete authentication flow.
+3. PUT vs PATCH – when to use each?
+4. What are idempotent HTTP methods?
+5. Common API security vulnerabilities and prevention (SQL injection, CSRF, etc.).
+6. How to write testable API endpoints?
+7. Explain Docker's role in backend deployment.
+8. Uvicorn vs Gunicorn – differences and use cases.
+9. How would you deploy a Django/FastAPI app to production?
+
+This organized structure separates **what to learn** (Section 1) from **interview preparation** (Section 2) for clearer focus. Build projects while studying to solidify everything — aim for 3–4 deployed APIs on GitHub. Good luck, Saroj! You'll be job-ready soon with consistent effort.
+# LEVEL II:
 # 🧭 Python Backend Developer Roadmap (Hiring-Ready & Scalable)
 
 > If you can confidently cover **Sections 1–8**, you are job-ready.
