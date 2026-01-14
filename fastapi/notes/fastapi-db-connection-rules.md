@@ -1,20 +1,17 @@
 # 📚 FastAPI + SQLAlchemy Database Connection Guide - INDEX
 
 ## 📋 Table of Contents
-
 ### 🚀 Getting Started Guides
-1. **[🚀 Database Connection RULES - Step by Step Guide](#section1)** - Basic setup and fundamentals
-2. **[🚀 (DETAILED EDITION) Database Connection RULES - Step by Step Guide](#section2)** - Complete deep dive
-3. **[📊 Best Practices Checklist](#section3)** - Mandatory and performance practices
-4. **[🔍 Debugging Guide](#section4)** - Common errors and solutions
-5. **[✅ Testing Practices](#section5)** - Testing database connections
-6. **[🎮 ULTIMATE ANALOGY CHEATSHEET](#section6)** - Real-world analogies for all concepts
+1. **[🚀 Database Connection RULES - Step by Step Guide](#-database-connection-rules---step-by-step-guide)** - Basic setup and fundamentals
+2. **[🚀 (DETAILED EDITION) Database Connection RULES - Step by Step Guide](#-detailed-edition-database-connection-rules---step-by-step-guide)** - Complete deep dive
+3. **[📊 Best Practices Checklist](#-best-practices-checklist)** - Mandatory and performance practices
+4. **[🔍 Debugging Guide](#-debugging-guide)** - Common errors and solutions
+5. **[✅ Testing Practices](#-testing-practices)** - Testing database connections
+6. **[🎮 ULTIMATE ANALOGY CHEATSHEET](#-ultimate-analogy-cheatsheet)** - Real-world analogies for all concepts
 
 ### 🚨 Critical Information
-7. **[🚨 CRITICAL REMINDERS](#section7)** - Never-forget rules
-8. **[📝 WHEN IN DOUBT, FOLLOW THIS TEMPLATE](#section8)** - Copy-paste ready code
-
-# 🚀 **Database Connection RULES - Step by Step Guide**
+7. **[🚨 CRITICAL REMINDERS](#-critical-reminders)** - Never-forget rules
+8. **[📝 WHEN IN DOUBT, FOLLOW THIS TEMPLATE](#-when-in-doubt-follow-this-template)** - Copy-paste ready code
 
 ## 📋 **GOLDEN RULES FOR DATABASE CONNECTIONS**
 
