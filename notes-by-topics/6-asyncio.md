@@ -8,6 +8,8 @@ ref: https://www.youtube.com/watch?v=lgoB3_-ejnI&list=PLu0W_9lII9agwh1XjRt242xIp
 `asyncio` is a **standard Python library** that allows writing **concurrent, non-blocking code** using the `async` / `await` syntax.
 
 ## 🔰 Sequential vs Concurrent Execution (Very Important)
+`Sequential`  =  One cashier in supermarket → very long queue
+`Concurrent`  =  20 cashiers open at once   → queue disappears very fast
 **I. Sequential Execution**
 **Meaning:**
 Tasks run **one after another**.
