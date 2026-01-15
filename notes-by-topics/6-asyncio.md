@@ -12,7 +12,8 @@ ref: https://www.youtube.com/watch?v=lgoB3_-ejnI&list=PLu0W_9lII9agwh1XjRt242xIp
 **Meaning:**
 Tasks run **one after another**.
 Each task must **finish completely** before the next one starts.
-
+**Example:** 
+To download 100 images from internet, one downloads completes then another 2nd one starts, then 3rd one starts (one by one) which is very slow. If each image takes ~2 seconds → ~200 seconds (more than 3 minutes) 
 **How it is achieved:**
 * Normal synchronous code
 * Using `await` one by one in async code
@@ -25,7 +26,7 @@ await task2()
 **Meaning:**
 Multiple tasks **start together** and run **overlapping in time**.
 While one task waits, another task executes.
-
+**Example:** To download 100 images from internet, Many images at the same time (much faster). No need to wait for first images to be downloaded, all start downloading at same time.
 **How it is achieved:**
 
 * `asyncio.gather()`
