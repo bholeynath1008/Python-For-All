@@ -1,4 +1,150 @@
-# Perfect Notes: Understanding `if __name__ == "__main__":` in Python
+## Interview Questions:
+*Note: Easy to understand with interview questions, for more information on section II there is notes
+---
+
+## 1. What is the purpose of `if __name__ == "__main__":` in Python?
+
+The purpose of
+
+```python
+if __name__ == "__main__":
+```
+
+is to **control the execution of code**.
+
+It ensures that:
+
+* The code runs **only when the file is executed directly**
+* The code does **not run when the file is imported as a module**
+
+This helps in creating **standalone scripts** while also making the file **reusable as a module**.
+
+---
+
+## 2. What is `__name__` in Python?
+
+`__name__` is a **special built-in variable** in Python.
+
+* It stores the **name of the current module**
+* Python automatically assigns its value
+
+It helps Python identify **how a file is being used** (run directly or imported).
+
+---
+
+## 3. What is `__main__` in Python?
+
+`__main__` is a **special string value**.
+
+* It represents the **entry point of a Python program**
+* The file that is executed directly by the Python interpreter is called the **main program**
+
+---
+
+## 4. What is the value of `__name__` when a script is run directly?
+
+When a Python file is executed directly:
+
+```bash
+python file.py
+```
+
+Python assigns:
+
+```python
+__name__ = "__main__"
+```
+
+So, the code inside:
+
+```python
+if __name__ == "__main__":
+```
+
+**will execute**.
+
+---
+
+## 5. What is the value of `__name__` when a script is imported?
+
+When a Python file is imported into another file:
+
+```python
+import file
+```
+
+Python assigns:
+
+```python
+__name__ = "file"
+```
+
+So, the code inside:
+
+```python
+if __name__ == "__main__":
+```
+
+**will NOT execute**.
+
+---
+
+## 6. Why do we use `if __name__ == "__main__":`?
+
+We use it to:
+
+* Prevent code from running during import
+* Avoid **side effects** like unwanted printing, file access, or API calls
+* Make the code **safe to reuse**
+* Separate **executable code** from **importable logic**
+
+---
+
+## 7. Why not put all code at the top level without the `if` check?
+
+If all code is written at the top level:
+
+* It **runs automatically on import**
+* Can cause **errors or unexpected behavior**
+* Makes the file difficult to use as a module
+* Breaks reusability
+
+📌 Therefore, using `if __name__ == "__main__":` is a **best practice**.
+
+---
+
+## 8. How does it help in creating standalone and reusable code?
+
+Using `if __name__ == "__main__":`:
+
+* Allows the file to act as a **standalone program**
+* Allows the same file to be **reused as a module** in other programs
+* Improves **code organization and maintainability**
+
+---
+
+## 9. Simple Example
+
+```python
+def add(a, b):
+    return a + b
+
+if __name__ == "__main__":
+    print(add(2, 3))
+```
+
+* When run directly → prints result
+* When imported → only the function is available, no execution
+
+---
+
+## 10. One-line exam answer
+
+`if __name__ == "__main__":` is used to ensure that a block of code runs only when the script is executed directly and not when it is imported, enabling standalone execution and reusable modules.
+
+---
+
+# Understanding `if __name__ == "__main__":` in Python
 
 ## Why This Matters
 In Python, you often see this at the bottom of files:
