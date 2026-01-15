@@ -210,7 +210,7 @@ file.close()
 
 ---
 
-## 11. Using `with` Statement (Best Practice)
+## 11. Using `with` Statement (Best Practice) [Context Manager: with]
 Instead of manually closing files, use `with`. It automatically closes the file.
 syntax:
 ```python
