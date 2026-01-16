@@ -1,7 +1,9 @@
 
 # 🧵 Multithreading in Python – Complete Beginner Notes
-
-Practice: Multithreading in Python: Downloading Images (Beginner to Advanced) at Button
+Content: 
+1. Basic concept multi threading
+2. Multithreading in Python: Downloading Images Advance
+3. Interview questions
 ---
 
 ## 1️⃣ What is Multithreading?
@@ -970,3 +972,294 @@ Use `ProcessPoolExecutor` only for CPU-bound tasks. For downloads (I/O), threads
 | `asyncio` + `aiohttp`     | 1000+ images              | Hard       | Very high      | For scale   |
 
 Use `ThreadPoolExecutor` for almost all real-world image downloading tasks in Python. It’s clean, safe, and fast enough.
+
+
+Got it 👍
+Here are the **most asked Python multithreading interview questions**, **from beginner to advanced**, with **clear, interview-ready answers**. These are *real-world common* questions recruiters love to ask.
+
+---
+
+# 🧵 Most Asked Multithreading Interview Questions in Python
+
+---
+
+## 1️⃣ What is Multithreading?
+
+**Answer:**
+Multithreading is a technique where **multiple threads run concurrently within a single process** to perform tasks in parallel.
+
+In Python, threads are mainly useful for **I/O-bound tasks** (file operations, network calls, API requests).
+
+---
+
+## 2️⃣ Difference Between Process and Thread?
+
+| Process          | Thread           |
+| ---------------- | ---------------- |
+| Heavyweight      | Lightweight      |
+| Own memory space | Shares memory    |
+| Slower to create | Faster to create |
+| No GIL issue     | Affected by GIL  |
+
+---
+
+## 3️⃣ What is the GIL (Global Interpreter Lock)?
+
+**Answer:**
+The **GIL** is a mutex that allows **only one thread to execute Python bytecode at a time**, even on multi-core CPUs.
+
+👉 This means:
+
+* Python threads **do not give true parallelism for CPU-bound tasks**
+* Threads are best for **I/O-bound tasks**
+
+---
+
+## 4️⃣ Why Does Python Have a GIL?
+
+**Answer:**
+
+* Simplifies **memory management**
+* Makes CPython **thread-safe**
+* Improves performance for **single-threaded programs**
+
+---
+
+## 5️⃣ When Should You Use Multithreading in Python?
+
+**Use multithreading when:**
+
+* Task is **I/O-bound**
+* Waiting on network / file / database
+* Making multiple API calls
+
+**Avoid multithreading for:**
+
+* Heavy CPU calculations
+
+---
+
+## 6️⃣ How Do You Create a Thread in Python?
+
+```python
+from threading import Thread
+
+def task():
+    print("Running in a thread")
+
+t = Thread(target=task)
+t.start()
+t.join()
+```
+
+---
+
+## 7️⃣ What Does `start()` and `join()` Do?
+
+**start():**
+
+* Starts a new thread
+* Calls the target function
+
+**join():**
+
+* Waits for the thread to finish
+* Blocks main thread until completion
+
+---
+
+## 8️⃣ What is a Race Condition?
+
+**Answer:**
+A race condition occurs when **multiple threads access shared data simultaneously**, leading to **inconsistent results**.
+
+Example:
+
+```python
+counter += 1
+```
+
+This operation is **not atomic**.
+
+---
+
+## 9️⃣ How Do You Prevent Race Conditions?
+
+By using **Locks**.
+
+```python
+from threading import Lock
+
+lock = Lock()
+
+with lock:
+    counter += 1
+```
+
+---
+
+## 🔟 What is a Lock?
+
+**Answer:**
+A lock ensures that **only one thread can access a shared resource at a time**.
+
+---
+
+## 1️⃣1️⃣ Difference Between Lock and RLock?
+
+| Lock                             | RLock                                  |
+| -------------------------------- | -------------------------------------- |
+| Non-reentrant                    | Reentrant                              |
+| Same thread cannot acquire twice | Same thread can acquire multiple times |
+| Faster                           | Slightly slower                        |
+
+---
+
+## 1️⃣2️⃣ What is Deadlock?
+
+**Answer:**
+A deadlock happens when **two or more threads wait forever for each other to release locks**.
+
+```text
+Thread A → Lock 1 → waits for Lock 2  
+Thread B → Lock 2 → waits for Lock 1
+```
+
+---
+
+## 1️⃣3️⃣ How Do You Avoid Deadlock?
+
+* Acquire locks in **same order**
+* Use **timeouts**
+* Keep critical sections small
+
+---
+
+## 1️⃣4️⃣ What is a Daemon Thread?
+
+**Answer:**
+A daemon thread runs in the background and **stops automatically when the main program exits**.
+
+```python
+t = Thread(target=task, daemon=True)
+```
+
+---
+
+## 1️⃣5️⃣ Difference Between Daemon and Non-Daemon Threads?
+
+| Daemon Thread           | Non-Daemon Thread |
+| ----------------------- | ----------------- |
+| Killed with main thread | Main waits for it |
+| Background tasks        | Important tasks   |
+
+---
+
+## 1️⃣6️⃣ What is `threading.current_thread()`?
+
+**Answer:**
+Returns the **current executing thread object**.
+
+```python
+import threading
+print(threading.current_thread().name)
+```
+
+---
+
+## 1️⃣7️⃣ What is Thread Safety?
+
+**Answer:**
+A program is **thread-safe** if it behaves correctly when accessed by multiple threads simultaneously.
+
+---
+
+## 1️⃣8️⃣ What is the `threading.Event`?
+
+**Answer:**
+Used for **signaling between threads**.
+
+```python
+event.set()    # Signal
+event.wait()   # Wait for signal
+```
+
+---
+
+## 1️⃣9️⃣ What is `ThreadPoolExecutor`?
+
+**Answer:**
+A high-level API for managing thread pools.
+
+```python
+from concurrent.futures import ThreadPoolExecutor
+
+with ThreadPoolExecutor(max_workers=3) as executor:
+    executor.map(task, items)
+```
+
+---
+
+## 2️⃣0️⃣ Threading vs Multiprocessing?
+
+| Threading       | Multiprocessing |
+| --------------- | --------------- |
+| Shared memory   | Separate memory |
+| Affected by GIL | No GIL          |
+| Best for I/O    | Best for CPU    |
+
+---
+
+## 2️⃣1️⃣ Can Python Threads Run in Parallel?
+
+**Answer:**
+❌ **No for CPU-bound tasks** (due to GIL)
+✅ **Yes for I/O-bound tasks**
+
+---
+
+## 2️⃣2️⃣ What Happens If a Thread Raises an Exception?
+
+**Answer:**
+
+* Exception **does not stop main thread**
+* Thread terminates silently (unless handled)
+
+---
+
+## 2️⃣3️⃣ How Do You Pass Arguments to Threads?
+
+```python
+Thread(target=task, args=(10, "Task1"))
+```
+
+---
+
+## 2️⃣4️⃣ What is the `queue.Queue` Used For?
+
+**Answer:**
+Thread-safe communication between threads.
+
+```python
+from queue import Queue
+q = Queue()
+q.put(1)
+q.get()
+```
+
+---
+
+## 2️⃣5️⃣ How Do You Stop a Thread?
+
+**Answer:**
+Python does **not support force-stopping threads**.
+Use:
+
+* Flags
+* Events
+
+```python
+stop_event = Event()
+```
+
+---
