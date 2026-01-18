@@ -34,7 +34,7 @@
 ### The Golden Rule
 **One Engine → One SessionLocal Factory → Many Temporary Sessions (one per request)**
 
-### Minimum Required Steps (Follow this Templates If confustion)
+### Minimum Required Steps and Templates (Follow this Template if confusion:)
 ```python
 # 1. Create Engine (Once)
 from sqlalchemy import create_engine
@@ -1029,4 +1029,989 @@ engine = create_engine(
 # ❌ WRONG
 @app.get("/products/{id}")
 def get_product(id: int, db: Session = Depends(get_database_session)):
-    product =
+    product = db.query(Product).filter(Product.id == id).first()
+    return product
+# Session closed here, then FastAPI tries to serialize product.category
+# Error! Relationship not loaded
+
+# ✅ CORRECT - Method 1: Eager load
+from sqlalchemy.orm import joinedload
+
+@app.get("/products/{id}")
+def get_product(id: int, db: Session = Depends(get_database_session)):
+    product = db.query(Product).options(
+        joinedload(Product.category)
+    ).filter(Product.id == id).first()
+    return product
+
+# ✅ CORRECT - Method 2: Use Pydantic schemas
+from pydantic import BaseModel
+
+class ProductResponse(BaseModel):
+    id: int
+    name: str
+    price: float
+    
+    class Config:
+        from_attributes = True
+
+@app.get("/products/{id}", response_model=ProductResponse)
+def get_product(id: int, db: Session = Depends(get_database_session)):
+    product = db.query(Product).filter(Product.id == id).first()
+    return product  # Pydantic converts while session is active
+```
+
+### Error 5: "DetachedInstanceError"
+
+**Cause:** Accessing object after session closed
+
+```python
+# ❌ WRONG
+def get_product_name(product_id: int):
+    db = SessionLocal()
+    product = db.query(Product).get(product_id)
+    db.close()
+    return product.name  # Error! Object detached from session
+
+# ✅ CORRECT - Access while session open
+def get_product_name(product_id: int):
+    db = SessionLocal()
+    try:
+        product = db.query(Product).get(product_id)
+        name = product.name  # Access before close
+        return name
+    finally:
+        db.close()
+```
+
+---
+
+## Testing Practices
+
+### Test Database Setup
+
+**Option 1: In-Memory SQLite (Fast, Isolated)**
+
+```python
+# conftest.py
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from fastapi.testclient import TestClient
+
+from database.session import SessionLocal
+from models.base import Base
+from main import app
+from dependencies.database import get_database_session
+
+# Test database URL (in-memory)
+TEST_DATABASE_URL = "sqlite:///:memory:"
+
+# Create test engine
+test_engine = create_engine(
+    TEST_DATABASE_URL,
+    connect_args={"check_same_thread": False}  # For SQLite only
+)
+
+# Create test session factory
+TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
+@pytest.fixture(scope="function")
+def test_db():
+    """Create fresh database for each test"""
+    # Create all tables
+    Base.metadata.create_all(bind=test_engine)
+    
+    # Create session
+    db = TestSessionLocal()
+    
+    try:
+        yield db
+    finally:
+        db.close()
+        # Drop all tables after test
+        Base.metadata.drop_all(bind=test_engine)
+
+@pytest.fixture(scope="function")
+def client(test_db):
+    """FastAPI test client with test database"""
+    def override_get_db():
+        try:
+            yield test_db
+        finally:
+            pass  # Don't close, fixture handles it
+    
+    app.dependency_overrides[get_database_session] = override_get_db
+    
+    with TestClient(app) as test_client:
+        yield test_client
+    
+    app.dependency_overrides.clear()
+```
+
+**Option 2: Separate Test Database (More Realistic)**
+
+```python
+# conftest.py
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+# Separate test database
+TEST_DATABASE_URL = "postgresql://postgres:password@localhost:5432/test_db"
+
+test_engine = create_engine(TEST_DATABASE_URL)
+TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_database():
+    """Create tables once for all tests"""
+    Base.metadata.create_all(bind=test_engine)
+    yield
+    Base.metadata.drop_all(bind=test_engine)
+
+@pytest.fixture(scope="function")
+def test_db():
+    """Rollback after each test"""
+    connection = test_engine.connect()
+    transaction = connection.begin()
+    db = TestSessionLocal(bind=connection)
+    
+    yield db
+    
+    db.close()
+    transaction.rollback()
+    connection.close()
+```
+
+### Writing Tests
+
+**Test CRUD Operations:**
+
+```python
+# test_products.py
+import pytest
+from models.product import Product
+from schemas.product import ProductCreate
+
+def test_create_product(client, test_db):
+    """Test creating a product"""
+    response = client.post(
+        "/products",
+        json={"name": "Test Product", "price": 29.99, "quantity": 10}
+    )
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert data["name"] == "Test Product"
+    assert data["price"] == 29.99
+    
+    # Verify in database
+    db_product = test_db.query(Product).filter(Product.name == "Test Product").first()
+    assert db_product is not None
+    assert db_product.quantity == 10
+
+def test_get_product(client, test_db):
+    """Test retrieving a product"""
+    # Create test data
+    product = Product(name="Test Product", price=19.99, quantity=5)
+    test_db.add(product)
+    test_db.commit()
+    test_db.refresh(product)
+    
+    # Test endpoint
+    response = client.get(f"/products/{product.id}")
+    assert response.status_code == 200
+    
+    data = response.json()
+    assert data["id"] == product.id
+    assert data["name"] == "Test Product"
+
+def test_update_product(client, test_db):
+    """Test updating a product"""
+    # Create test data
+    product = Product(name="Old Name", price=10.00, quantity=1)
+    test_db.add(product)
+    test_db.commit()
+    test_db.refresh(product)
+    
+    # Update
+    response = client.put(
+        f"/products/{product.id}",
+        json={"name": "New Name", "price": 15.00}
+    )
+    assert response.status_code == 200
+    
+    # Verify
+    test_db.refresh(product)
+    assert product.name == "New Name"
+    assert product.price == 15.00
+
+def test_delete_product(client, test_db):
+    """Test deleting a product"""
+    # Create test data
+    product = Product(name="To Delete", price=5.00, quantity=1)
+    test_db.add(product)
+    test_db.commit()
+    product_id = product.id
+    
+    # Delete
+    response = client.delete(f"/products/{product_id}")
+    assert response.status_code == 200
+    
+    # Verify deleted
+    deleted_product = test_db.query(Product).filter(Product.id == product_id).first()
+    assert deleted_product is None
+```
+
+**Test Error Handling:**
+
+```python
+def test_get_nonexistent_product(client):
+    """Test 404 for nonexistent product"""
+    response = client.get("/products/99999")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Product not found"
+
+def test_create_invalid_product(client):
+    """Test validation errors"""
+    response = client.post(
+        "/products",
+        json={"name": "Test"}  # Missing required price field
+    )
+    assert response.status_code == 422  # Validation error
+```
+
+**Test Database Constraints:**
+
+```python
+def test_unique_constraint(test_db):
+    """Test database unique constraint"""
+    # Create first product
+    product1 = Product(name="Unique", price=10.00)
+    test_db.add(product1)
+    test_db.commit()
+    
+    # Try to create duplicate (if unique constraint exists)
+    from sqlalchemy.exc import IntegrityError
+    
+    product2 = Product(name="Unique", price=20.00)
+    test_db.add(product2)
+    
+    with pytest.raises(IntegrityError):
+        test_db.commit()
+    
+    test_db.rollback()  # Clean up
+```
+
+**Test Transactions:**
+
+```python
+def test_rollback_on_error(test_db):
+    """Test that errors trigger rollback"""
+    initial_count = test_db.query(Product).count()
+    
+    try:
+        product = Product(name="Test", price=10.00)
+        test_db.add(product)
+        test_db.flush()  # Send to database but don't commit
+        
+        # Simulate error
+        raise ValueError("Simulated error")
+        
+    except ValueError:
+        test_db.rollback()
+    
+    # Verify nothing was saved
+    final_count = test_db.query(Product).count()
+    assert final_count == initial_count
+```
+
+### Testing Best Practices
+
+**1. Isolate Tests**
+```python
+# Use function scope for database fixtures
+@pytest.fixture(scope="function")  # New DB for each test
+def test_db():
+    # Setup
+    yield db
+    # Teardown
+```
+
+**2. Use Factories for Test Data**
+```python
+# factories.py
+from faker import Faker
+from models.product import Product
+
+fake = Faker()
+
+class ProductFactory:
+    @staticmethod
+    def create(**kwargs):
+        defaults = {
+            "name": fake.word(),
+            "price": fake.pyfloat(min_value=1, max_value=1000, right_digits=2),
+            "quantity": fake.random_int(min=0, max=100)
+        }
+        defaults.update(kwargs)
+        return Product(**defaults)
+
+# In tests:
+def test_with_factory(test_db):
+    product = ProductFactory.create(name="Specific Name")
+    test_db.add(product)
+    test_db.commit()
+```
+
+**3. Test Database Migrations**
+```python
+# If using Alembic
+def test_migration_up_down():
+    """Test migrations work both ways"""
+    from alembic import command
+    from alembic.config import Config
+    
+    config = Config("alembic.ini")
+    
+    # Upgrade
+    command.upgrade(config, "head")
+    
+    # Downgrade
+    command.downgrade(config, "base")
+    
+    # Upgrade again
+    command.upgrade(config, "head")
+```
+
+---
+
+## Ultimate Analogy Cheatsheet
+
+### Core Components as Real-World Systems
+
+| Component | Analogy | What It Does | Key Rule |
+|-----------|---------|--------------|----------|
+| **DATABASE_URL** | Home Address | GPS coordinates to find database | Format: `dialect://user:pass@host:port/dbname` |
+| **Engine** | City's Water Plant | Manages all water (connections) distribution | **ONE per application** |
+| **Base** | Building Code Standard | Rules all buildings must follow | All models inherit from this |
+| **SessionLocal** | Car Rental Company | Rents out cars (sessions) | Factory that creates sessions |
+| **Session** | Rental Car | Your temporary vehicle | Use it, return it (close) |
+| **get_database_session()** | Rental Service Agent | Gets car, gives to you, takes it back | Dependency function |
+| **db** (in routes) | The Car Keys | Access to drive (query) the car | One per request |
+
+### Detailed Analogies
+
+#### 1. **Connection Pool = Restaurant Kitchen**
+
+```
+Restaurant Analogy:
+┌─────────────────────────────────────────┐
+│           RESTAURANT KITCHEN            │
+│                                         │
+│  Chefs = Database Connections          │
+│  ├─ pool_size=20 → 20 chefs hired      │
+│  ├─ max_overflow=10 → Can hire 10 temp │
+│  └─ pool_timeout=30 → Wait 30s for chef│
+│                                         │
+│  Customers = Requests                   │
+│  ├─ Request comes in                    │
+│  ├─ Get available chef (connection)     │
+│  ├─ Chef cooks (executes query)         │
+│  └─ Chef returns to pool (reusable)     │
+└─────────────────────────────────────────┘
+```
+
+#### 2. **Session Lifecycle = Library Book Checkout**
+
+```
+Library Analogy:
+┌──────────────────────────────────────────────┐
+│  1. SessionLocal() = Check out book          │
+│     "I need a book to read"                  │
+│                                              │
+│  2. db.query() = Read the book               │
+│     "I'm reading chapters"                   │
+│                                              │
+│  3. db.add() = Make notes (tracked)          │
+│     "I'm marking pages, not permanent"       │
+│                                              │
+│  4. db.commit() = Buy the book               │
+│     "Changes become permanent"               │
+│                                              │
+│  5. db.rollback() = Return book unchanged    │
+│     "Discard all my notes"                   │
+│                                              │
+│  6. db.close() = Return book to library      │
+│     "MUST return for others to use"          │
+└──────────────────────────────────────────────┘
+```
+
+#### 3. **autocommit=False = Manual vs Automatic Transmission**
+
+```
+Manual Transmission (autocommit=False) ✅
+┌────────────────────────────────────────┐
+│  You control when to shift gears       │
+│  ├─ Step on clutch (start transaction) │
+│  ├─ Change gear (make changes)         │
+│  ├─ Release clutch (commit)            │
+│  └─ Can cancel mid-shift (rollback)    │
+│                                        │
+│  Benefits: Full control, can undo     │
+└────────────────────────────────────────┘
+
+Automatic Transmission (autocommit=True) ❌
+┌────────────────────────────────────────┐
+│  Car decides when to shift              │
+│  ├─ Each change = immediate shift       │
+│  ├─ Can't cancel mid-operation          │
+│  └─ If crash mid-shift = partial damage │
+│                                        │
+│  Problem: Can't undo, risky            │
+└────────────────────────────────────────┘
+```
+
+#### 4. **Index = Book's Table of Contents**
+
+```
+Without Index (index=False):
+┌────────────────────────────────────────┐
+│  Finding "Chapter 7" in 500-page book  │
+│  ├─ Start from page 1                  │
+│  ├─ Read every page title              │
+│  ├─ Finally found at page 347          │
+│  └─ Time: 30 minutes ❌                │
+└────────────────────────────────────────┘
+
+With Index (index=True):
+┌────────────────────────────────────────┐
+│  Finding "Chapter 7" in 500-page book  │
+│  ├─ Look at Table of Contents          │
+│  ├─ "Chapter 7 → Page 347"             │
+│  ├─ Jump directly to page 347          │
+│  └─ Time: 10 seconds ✅                │
+└────────────────────────────────────────┘
+```
+
+#### 5. **Dependency Injection = Hotel Concierge**
+
+```
+Hotel Concierge (get_database_session):
+┌──────────────────────────────────────────────┐
+│  Guest arrives (Request comes in)            │
+│         ↓                                    │
+│  Concierge gets room key (Create session)    │
+│         ↓                                    │
+│  Gives key to guest (yield session)          │
+│         ↓                                    │
+│  Guest uses room (Route function queries)    │
+│         ↓                                    │
+│  Guest leaves (Function returns)             │
+│         ↓                                    │
+│  Concierge takes key back (finally: close)   │
+│         ↓                                    │
+│  Room ready for next guest (Connection free) │
+└──────────────────────────────────────────────┘
+```
+
+#### 6. **One Session Per Request = One Shopping Cart**
+
+```
+✅ CORRECT: Each customer has own cart
+┌─────────────────────────────────────┐
+│  Customer A's Cart (Session A)      │
+│  ├─ Milk                            │
+│  ├─ Bread                           │
+│  └─ Eggs                            │
+│                                     │
+│  Customer B's Cart (Session B)      │
+│  ├─ Apples                          │
+│  └─ Juice                           │
+│                                     │
+│  No mixing! ✅                      │
+└─────────────────────────────────────┘
+
+❌ WRONG: Shared cart for all customers
+┌─────────────────────────────────────┐
+│  Global Shared Cart (One Session)   │
+│  ├─ Milk (Customer A)               │
+│  ├─ Apples (Customer B)             │
+│  ├─ Bread (Customer A)              │
+│  └─ Juice (Customer B)              │
+│                                     │
+│  Chaos! Wrong items! ❌             │
+└─────────────────────────────────────┘
+```
+
+---
+
+## Copy-Paste Template
+
+### Complete Working Project Template
+
+Copy this entire structure for instant setup:
+
+#### 1. Project Structure
+```bash
+mkdir -p fastapi_project/{database,models,schemas,api/routes,dependencies}
+cd fastapi_project
+```
+
+#### 2. File: `database/engine.py`
+```python
+from sqlalchemy import create_engine
+import os
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:password@localhost:5432/fastapi_db"
+)
+
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=20,
+    max_overflow=0,
+    pool_timeout=30,
+    pool_recycle=1800,
+    pool_pre_ping=True,
+    echo=True,  # Set to False in production
+)
+```
+
+#### 3. File: `database/session.py`
+```python
+from sqlalchemy.orm import sessionmaker
+from .engine import engine
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+```
+
+#### 4. File: `models/base.py`
+```python
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+```
+
+#### 5. File: `models/product.py`
+```python
+from sqlalchemy import Column, Integer, String, Float
+from .base import Base
+
+class Product(Base):
+    __tablename__ = "products"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False, index=True)
+    description = Column(String(500))
+    price = Column(Float, nullable=False)
+    quantity = Column(Integer, default=0)
+    
+    def __repr__(self):
+        return f"<Product(id={self.id}, name='{self.name}', price={self.price})>"
+```
+
+#### 6. File: `schemas/product.py`
+```python
+from pydantic import BaseModel, Field
+from typing import Optional
+
+class ProductBase(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    description: Optional[str] = Field(None, max_length=500)
+    price: float = Field(..., gt=0)
+    quantity: int = Field(default=0, ge=0)
+
+class ProductCreate(ProductBase):
+    pass
+
+class ProductUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    description: Optional[str] = Field(None, max_length=500)
+    price: Optional[float] = Field(None, gt=0)
+    quantity: Optional[int] = Field(None, ge=0)
+
+class ProductResponse(ProductBase):
+    id: int
+    
+    class Config:
+        from_attributes = True
+```
+
+#### 7. File: `dependencies/database.py`
+```python
+from sqlalchemy.orm import Session
+from database.session import SessionLocal
+from typing import Generator
+
+def get_database_session() -> Generator[Session, None, None]:
+    """
+    Database session dependency for FastAPI routes.
+    Creates a new session for each request and closes it after.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    except Exception as e:
+        db.rollback()
+        raise e
+    finally:
+        db.close()
+```
+
+#### 8. File: `api/routes/products.py`
+```python
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from typing import List
+
+from dependencies.database import get_database_session
+from models.product import Product
+from schemas.product import ProductCreate, ProductUpdate, ProductResponse
+
+router = APIRouter(prefix="/products", tags=["products"])
+
+@router.post("/", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
+def create_product(
+    product: ProductCreate,
+    db: Session = Depends(get_database_session)
+):
+    """Create a new product"""
+    db_product = Product(**product.dict())
+    db.add(db_product)
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
+@router.get("/", response_model=List[ProductResponse])
+def list_products(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_database_session)
+):
+    """List all products with pagination"""
+    products = db.query(Product).offset(skip).limit(limit).all()
+    return products
+
+@router.get("/{product_id}", response_model=ProductResponse)
+def get_product(
+    product_id: int,
+    db: Session = Depends(get_database_session)
+):
+    """Get a specific product by ID"""
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Product with id {product_id} not found"
+        )
+    return product
+
+@router.put("/{product_id}", response_model=ProductResponse)
+def update_product(
+    product_id: int,
+    product_update: ProductUpdate,
+    db: Session = Depends(get_database_session)
+):
+    """Update a product"""
+    db_product = db.query(Product).filter(Product.id == product_id).first()
+    if not db_product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Product with id {product_id} not found"
+        )
+    
+    update_data = product_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_product, key, value)
+    
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
+@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_product(
+    product_id: int,
+    db: Session = Depends(get_database_session)
+):
+    """Delete a product"""
+    db_product = db.query(Product).filter(Product.id == product_id).first()
+    if not db_product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Product with id {product_id} not found"
+        )
+    
+    db.delete(db_product)
+    db.commit()
+    return None
+```
+
+#### 9. File: `main.py`
+```python
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from database.engine import engine
+from models.base import Base
+from models import product  # Import all models
+from api.routes import products
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(
+    title="FastAPI SQLAlchemy Demo",
+    description="Complete database connection example",
+    version="1.0.0"
+)
+
+# CORS middleware (optional)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
+app.include_router(products.router)
+
+@app.get("/")
+def root():
+    return {
+        "message": "FastAPI + SQLAlchemy Demo",
+        "docs": "/docs",
+        "redoc": "/redoc"
+    }
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+```
+
+#### 10. File: `requirements.txt`
+```txt
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+sqlalchemy==2.0.25
+psycopg2-binary==2.9.9  # For PostgreSQL
+python-dotenv==1.0.0
+pydantic==2.5.3
+```
+
+#### 11. File: `.env`
+```bash
+DATABASE_URL=postgresql://postgres:password@localhost:5432/fastapi_db
+```
+
+#### 12. File: `.env.example`
+```bash
+DATABASE_URL=postgresql://username:password@localhost:5432/database_name
+```
+
+#### 13. File: `database/__init__.py`
+```python
+from .engine import engine
+from .session import SessionLocal
+
+__all__ = ["engine", "SessionLocal"]
+```
+
+#### 14. File: `models/__init__.py`
+```python
+from .base import Base
+from .product import Product
+
+__all__ = ["Base", "Product"]
+```
+
+#### 15. File: `api/__init__.py` and `api/routes/__init__.py`
+```python
+# Empty files to make directories Python packages
+```
+
+### Running the Application
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application
+python main.py
+
+# Or with uvicorn
+uvicorn main:app --reload
+
+# Access API documentation
+# http://localhost:8000/docs
+```
+
+---
+
+## Critical Reminders
+
+### 🚨 NEVER FORGET - Top 10 Rules
+
+#### 1. **One Engine Per Application**
+```python
+# ✅ CORRECT: Module level (created once)
+engine = create_engine(DATABASE_URL)
+
+# ❌ WRONG: Function level (creates multiple)
+def get_engine():
+    return create_engine(DATABASE_URL)
+```
+
+#### 2. **Always Close Sessions**
+```python
+# ✅ CORRECT: Using dependency with finally
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()  # ALWAYS executes
+
+# ❌ WRONG: Manual session without close
+db = SessionLocal()
+db.query(...)  # Forgot to close!
+```
+
+#### 3. **Use autocommit=False**
+```python
+# ✅ CORRECT: Explicit control
+SessionLocal = sessionmaker(autocommit=False, bind=engine)
+db.add(item)
+db.commit()  # We choose when to save
+
+# ❌ WRONG: Automatic commits
+SessionLocal = sessionmaker(autocommit=True, bind=engine)
+# Can't rollback, partial saves on errors
+```
+
+#### 4. **Handle Rollbacks**
+```python
+# ✅ CORRECT: Always rollback on error
+try:
+    db.add(item)
+    db.commit()
+except Exception:
+    db.rollback()  # Undo changes
+    raise
+
+# ❌ WRONG: No rollback
+try:
+    db.add(item)
+    db.commit()
+except Exception:
+    raise  # Session in bad state!
+```
+
+#### 5. **Enable pool_pre_ping**
+```python
+# ✅ CORRECT: Test connections before use
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True  # Prevents stale connections
+)
+
+# ❌ WRONG: No connection testing
+engine = create_engine(DATABASE_URL)
+# May use broken connections
+```
+
+#### 6. **Index Strategically**
+```python
+# ✅ CORRECT: Index frequently queried columns
+id = Column(Integer, primary_key=True, index=True)
+email = Column(String, unique=True, index=True)
+
+# ❌ WRONG: Index everything or nothing
+# Too many indexes slow down writes
+# No indexes slow down reads
+```
+
+#### 7. **One Session Per Request**
+```python
+# ✅ CORRECT: New session for each request
+@app.get("/items")
+def get_items(db: Session = Depends(get_db)):
+    return db.query(Item).all()
+
+# ❌ WRONG: Shared global session
+global_db = SessionLocal()  # Multiple requests share!
+```
+
+#### 8. **Use Environment Variables**
+```python
+# ✅ CORRECT: Load from environment
+import os
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+# ❌ WRONG: Hardcoded credentials
+DATABASE_URL = "postgresql://admin:password123@localhost/db"
+# Never commit passwords to version control!
+```
+
+#### 9. **Commit Explicitly**
+```python
+# ✅ CORRECT: Explicit commit after changes
+db.add(new_item)
+db.commit()  # Save now
+
+# ❌ WRONG: Expecting auto-save
+db.add(new_item)
+# Nothing saved! (with autocommit=False)
+```
+
+#### 10. **Use Pydantic Schemas**
+```python
+# ✅ CORRECT: Separate models and schemas
+# models/user.py - Database model
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+
+# schemas/user.py - API schema
+class UserResponse(BaseModel):
+    id: int
+    class Config:
+        from_attributes = True
+
+# ❌ WRONG: Returning database models directly
+@app.get("/users")
+def get_users(db: Session = Depends(get_db)):
+    return db.query(User).all()  # Exposes internal structure!
+```
+
+---
+
+### ⚡ Quick Reference Card
+
+```python
+# ════════════════════════════════════════════════════════
+#                    QUICK SETUP GUIDE
+# ════════════════════════════════════════════════════════
+
+# 1️⃣ ENGINE (Once at startup)
+from sqlalchemy import create_engine
+engine = create_engine("postgresql://user:pass@host/db")
+
+# 2️⃣ BASE (Once at startup)
+from sqlalchemy.ext.declarative import declarative_base
+Base = declarative_base()
+
+# 3️⃣ MODEL (Define tables)
+from sqlalchemy
