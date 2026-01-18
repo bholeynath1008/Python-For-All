@@ -34,7 +34,7 @@
 ### The Golden Rule
 **One Engine → One SessionLocal Factory → Many Temporary Sessions (one per request)**
 
-### Minimum Required Steps
+### Minimum Required Steps (Follow this Templates If confustion)
 ```python
 # 1. Create Engine (Once)
 from sqlalchemy import create_engine
