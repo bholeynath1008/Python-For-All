@@ -45,7 +45,7 @@ pip install python-dotenv
 ```python
 # 1. Create Engine (Once)
 from sqlalchemy import create_engine
-url = postgresql://postgres:your_password@localhost:5432/your_database
+url = "postgresql://postgres:your_password@localhost:5432/your_database"
 # user -> postgres, default Port -> 5432, default db -> postgres
 engine = create_engine(url)
 
