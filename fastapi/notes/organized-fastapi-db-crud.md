@@ -29,6 +29,12 @@
 16. [Installation Guide](#installation-guide)
 ---
 
+### Simple installation: For Advance setup follow: [16. Installation Guide](#installation-guide)
+```python
+# Install FastAPI, SQLAlchemy, Postgres Driver (psycopg2)
+pip install fastapi sqlalchemy psycopg2
+pip install python-dotenv
+```
 
 ## Quick Start Guide
 
