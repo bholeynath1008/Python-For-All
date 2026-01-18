@@ -1,4 +1,4 @@
-### For python exercise dict: [exercise pynative](https://pynative.com/python-dictionary-exercise-with-solutions/)
+### For python exercise dict: [Link to exercise pynative](https://pynative.com/python-dictionary-exercise-with-solutions/)
 # Methods, Keywords, and Their Work
 
 ## Methods/Functions Used:
