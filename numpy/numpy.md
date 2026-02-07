@@ -34,7 +34,32 @@ pip install numpy
 # Import NumPy
 import numpy as np
 ```
+## Python vs NumPy: Comparision
+```python
+import numpy as np
 
+# Using Pure Python (Lists)
+python_list1 = [10, 20, 30, 40, 50]
+python_list2 = [5, 10, 15, 20, 25]
+
+# Add two lists element-wise - Need a loop!
+result_python = []
+for i in range(len(python_list1)):
+    result_python.append(python_list1[i] + python_list2[i])
+print("Python Result:", result_python)
+# Output: Python Result: [15, 30, 45, 60, 75]
+
+# Using NumPy (Arrays)
+numpy_arr1 = np.array([10, 20, 30, 40, 50])
+numpy_arr2 = np.array([5, 10, 15, 20, 25])
+
+# Add two arrays - No loop needed!
+result_numpy = numpy_arr1 + numpy_arr2
+print("NumPy Result:", result_numpy)
+# Output: NumPy Result: [15 30 45 60 75]
+
+# NumPy Code: 1 line vs Python Code: 3 lines + loop!
+```
 ---
 
 ## 2. NumPy Arrays Basics {#arrays-basics}
@@ -297,14 +322,18 @@ print(scores_extended)
 ```
 
 ### F. Modifying Values
-
+1. **EXTRACT:** array[index/indices/condition]  ← Look at current values
+2. **REPLACE:** array[index/indices/condition] = new_value(s)  ← Assign new values
 ```python
 grades = np.array([85, 90, 78])
 
-# Replace single value
+# Example 1: Replace single value
+# Step 1: Extract - Access index 1
+print("Before:", grades[1])  # Extract: shows 90
+# Step 2: Replace - Assign new value
 grades[1] = 95
-print(grades)
-# Output: [85 95 78]
+print("After:", grades)
+# Output: After: [85 95 78 92 88]
 
 # Replace multiple values with one value
 grades[[1, 2]] = 80
@@ -581,18 +610,21 @@ sales_data = np.array([[10, 20, 50],
                        [30, 40, 60],
                        [20, 80, 90]])
 print(sales_data)
-# Output: [[10 20 50]
-#          [30 40 60]
-#          [20 80 90]]
+# Output: [[10 20 50]  ← Row 0 (index 0)
+#          [30 40 60]  ← Row 1 (index 1)
+#          [20 80 90]] ← Row 2 (index 2)
+#          ↑   ↑   ↑
+#       Col 0  1   2
+#     (index)
 
-# Rule: array[row, column]
+# Rule: array[row, column] or array[row_slice, column_slice]
 
-# Access entire first row
+# Access entire first row (row at index 0, all columns)
 first_row = sales_data[0]
 print(first_row)
 # Output: [10 20 50]
 
-# Access specific element (row 2, column 2)
+# Access specific element (row index 2, column index 2)
 element = sales_data[2, 2]
 print(element)
 # Output: 90
@@ -603,6 +635,8 @@ print(element2)
 # Output: 30
 
 # Slice rows
+# Slice rows: Get rows from index 1 to 3 (exclusive), all columns
+# This means: Start from row 1, end before row 3 → gets rows 1 and 2
 rows_1_to_2 = sales_data[1:3]
 print(rows_1_to_2)
 # Output: [[30 40 60]
@@ -619,10 +653,20 @@ print(column_1)
 # Output: [20 40 80]
 
 # Access specific rows, all columns
+# Access specific rows, all columns: Rows from index 0 to 2 (exclusive), all columns
+# `0:2` → rows 0 and 1 (stops before index 2)
+# `:` → all columns
 first_two_rows = sales_data[0:2, :]
 print(first_two_rows)
 # Output: [[10 20 50]
 #          [30 40 60]]
+
+# Alternative syntax (same result): When taking all columns, you can omit `:`
+first_two_rows_alt = sales_data[0:2]
+print(first_two_rows_alt)
+# Output: [[10 20 50]
+#          [30 40 60]]
+# This is the same as sales_data[0:2, :]
 ```
 
 ---
