@@ -1,6 +1,7 @@
 # Table of Contents
 * [Business Rules for Data Exploration and Cleaning](#business-rules-for-data-exploration-and-cleaning)
 * [Quick Reference: All Methods Used(data exploration, data cleaning, panda tips)](#quick-reference-all-methods-used)
+* [Remember These Tips](#remember-these-tips)
 
 # Business Rules for Data Exploration and Cleaning
 ## For coding follow quick reference below: 
@@ -373,7 +374,7 @@ print("Cleaned rows:", len(cleaned_df))
 
 ---
 
-## **Remember These Tips:**
+## **Remember These Tips**
 1. **Always backup** your original data
 2. **Check after each step** - don't do all cleaning at once
 3. **Think before removing** - is 5% really okay to delete?
