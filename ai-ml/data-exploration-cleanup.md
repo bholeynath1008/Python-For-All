@@ -1,4 +1,9 @@
+# Table of Contents
+* [Business Rules for Data Exploration and Cleaning](#business-rules-for-data-exploration-and-cleaning)
+* [Quick Reference: All Methods Used(data exploration, data cleaning, panda tips)](#quick-reference-all-methods-used)
+
 # Business Rules for Data Exploration and Cleaning
+## For coding follow quick reference below: 
 ### Theoretical Understanding
 Data exploration and cleaning are crucial steps in the data science pipeline:
 
@@ -224,7 +229,7 @@ print("\nShape now:", df_clean.shape)
 
 ---
 
-## **Quick Reference: All Methods Used**
+## Quick Reference: All Methods Used
 
 ### **EXPLORATION METHODS (Looking at Data)**
 ```python
