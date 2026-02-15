@@ -1,5 +1,92 @@
 # Data Cleaning
 
+## Key Rules to Understand
+
+### 1. **Data Quality Issues**
+   - **Wrong Data**: Incorrect values or formats (e.g., "20+" instead of 20)
+   - **Wrong Data Type**: Numeric data stored as strings/objects
+   - **Duplicates**: Identical rows that need to be removed
+   - **Missing Values (NaN)**: Empty cells that need handling
+   - **Outliers**: Extreme values that deviate from the normal pattern
+
+### 2. **Missing Values Handling Strategy**
+   - **Remove**: Drop rows/columns with missing values
+   - **Replace**: Fill missing values with:
+     - **Continuous Variables**: Mean or Median
+     - **Discrete/Categorical Variables**: Mode (most frequent value)
+
+### 3. **Outlier Detection Methods**
+   - **Boxplot**: Visual identification
+   - **IQR Method** (Interquartile Range):
+     - Lower Limit = Q1 - (1.5 × IQR)
+     - Upper Limit = Q3 + (1.5 × IQR)
+     - Values outside these limits are outliers
+
+### 4. **3R Technique for Outliers**
+   - **Remove**: Delete outlier records
+   - **Replace**: Rectify errors or apply winsorization (cap at limits)
+   - **Retain**: Keep for separate analysis
+
+### 5. **Best Practices**
+   - Always check data types using `.info()`
+   - Check for duplicates before analysis
+   - Calculate percentage of missing values
+   - Visualize outliers before removing
+   - Document your cleaning decisions
+
+---
+
+## Python Functions Reference
+
+### **Pandas DataFrame Functions**
+
+| Function | Purpose | Syntax Example |
+|----------|---------|----------------|
+| `pd.DataFrame()` | Create a DataFrame | `pd.DataFrame({"col": [values]})` |
+| `.info()` | Display DataFrame information (types, non-null counts) | `df.info()` |
+| `.unique()` | Get unique values in a column | `df["col"].unique()` |
+| `.replace()` | Replace values | `df["col"].replace({"old": new}, inplace=True)` |
+| `.astype()` | Convert data type | `df["col"].astype('float')` |
+| `.duplicated()` | Check for duplicate rows | `df.duplicated()` |
+| `.drop_duplicates()` | Remove duplicate rows | `df.drop_duplicates(inplace=True)` |
+| `.isnull()` | Check for missing values (returns Boolean) | `df.isnull()` |
+| `.sum()` | Sum values (often used with `.isnull()`) | `df.isnull().sum()` |
+| `.dropna()` | Remove rows with missing values | `df.dropna()` |
+| `.drop()` | Remove rows or columns | `df.drop(columns=["col"])` or `df.drop(index=[0])` |
+| `.fillna()` | Fill missing values | `df["col"].fillna(value)` |
+| `.mean()` | Calculate mean | `df["col"].mean()` |
+| `.median()` | Calculate median | `df["col"].median()` |
+| `.mode()` | Calculate mode (most frequent) | `df["col"].mode()[0]` |
+| `.quantile()` | Calculate quantile/percentile | `df["col"].quantile(0.25)` |
+| `.clip()` | Limit values to a range (winsorization) | `df["col"].clip(lower=min, upper=max)` |
+| `len()` | Get length/count of DataFrame | `len(df)` |
+
+### **NumPy Functions**
+
+| Function | Purpose | Syntax Example |
+|----------|---------|----------------|
+| `np.nan` | Represent missing/null values | `np.nan` |
+
+### **Visualization Functions**
+
+| Function | Purpose | Syntax Example |
+|----------|---------|----------------|
+| `sns.boxplot()` | Create boxplot to visualize outliers | `sns.boxplot(x=df["col"])` |
+| `plt.show()` | Display the plot | `plt.show()` |
+
+### **Parameters to Remember**
+
+| Parameter | Purpose | Used In |
+|-----------|---------|---------|
+| `inplace=True` | Modify DataFrame directly (no return) | `.replace()`, `.drop_duplicates()` |
+| `ignore_index=True` | Reset index after operation | `.drop_duplicates()` |
+| `columns=["col"]` | Specify column(s) to drop | `.drop()` |
+| `index=[0, 1]` | Specify row index(es) to drop | `.drop()` |
+| `lower=value` | Set lower limit | `.clip()` |
+| `upper=value` | Set upper limit | `.clip()` |
+
+---
+
 ## Bad data could be:
 
 1. Wrong data
